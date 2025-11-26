@@ -27,6 +27,7 @@ enum SimpsonError: Error {
         }
     }
 }
+
 class APIService: APIServiceProtocol {
     
     private let session: URLSession
@@ -52,14 +53,7 @@ class APIService: APIServiceProtocol {
                 )
             }
 
-            do {
-                return try decoder.decode(T.self, from: data)
-            } catch {
-                let raw = String(data: data, encoding: .utf8) ?? "No readable body"
-                throw SimpsonError.parsing(
-                    description: "\(error.localizedDescription)\nRAW BODY: \(raw)"
-                )
-            }
+          return try await decode(data)
 
         } catch let simpsonError as SimpsonError {
             throw simpsonError
@@ -71,20 +65,5 @@ class APIService: APIServiceProtocol {
         }
     }
 
-    
-    private func decode<T: Decodable>(_ data: Data) throws -> T {
-        do {
-            return try decoder.decode(T.self, from: data)
-        } catch {
-            throw SimpsonError.parsing(description: error.localizedDescription)
-        }
-    }
-
 }
-
-
-
-
-
-
 
