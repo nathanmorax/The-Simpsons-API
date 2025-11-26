@@ -27,11 +27,6 @@ enum SimpsonError: Error {
         }
     }
 }
-
-protocol APIServiceProtocol {
-    func request<T: Decodable>(urlString: URL) async throws -> T
-}
-
 class APIService: APIServiceProtocol {
     
     private let session: URLSession
@@ -89,107 +84,7 @@ class APIService: APIServiceProtocol {
 
 
 
-struct SimpsonsCharacterModel: Codable, Identifiable {
-    let id: Int
-    let age: Int?
-    let birthdate: String?
-    let gender: String?
-    let name: String
-    let occupation: String?
-    let portrait_path: String?
-    let phrases: [String]?
-    let status: String?
-}
-
-struct SimpsonsPaginatedResponse: Codable {
-    let count: Int
-    let next: String?
-    let prev: String?
-    let pages: Int
-    let results: [SimpsonsCharacterModel]
-}
 
 
-
-extension SimpsonsCharacterModel {
-    var imageURL: URL? {
-        guard let portrait_path else { return nil }
-        return URL(string: "https://cdn.thesimpsonsapi.com/500\(portrait_path)")
-    }
-}
-
-struct Relative: Codable, Identifiable {
-    let name: String
-    let relation: String
-    
-    var id: String { name + relation }
-}
-
-protocol TheSimpsonService {
-    func getAllCharacters() async throws -> [SimpsonsCharacterModel]
-
-}
-
-class TheSimpsonServiceImpl: TheSimpsonService {
-        
-    private let APIService: APIServiceProtocol
-    private let baseURL = "https://thesimpsonsapi.com/api"
-
-    
-    init(APIService: APIServiceProtocol) {
-        self.APIService = APIService
-    }
-    
-    func getAllCharacters() async throws -> [SimpsonsCharacterModel] {
-        guard let url = URL(string: "\(baseURL)/characters") else {
-            throw SimpsonError.invalidURL
-        }
-
-
-        do {
-            let characters: SimpsonsPaginatedResponse = try await APIService.request(urlString: url)
-            return characters.results
-        } catch {
-            print("Error en getAllCharacters:")
-            dump(error)
-            
-            throw error
-        }
-    }
-
-    
-    
-}
-
-
-@Observable
-class HomeCharacterViewModel {
-    
-    private let characterService: TheSimpsonService
-    private(set) var model: [SimpsonsCharacterModel] = []
-    private(set) var errorMessage: String?
-
-
-    
-    init(characterService: TheSimpsonService) {
-        self.characterService = characterService
-    }
-
-    
-    @MainActor
-    func fetchCharacters() async {
-        
-        do {
-            let response = try await characterService.getAllCharacters()
-            print("response:: ",response)
-            
-            self.model = response
-        } catch  let error {
-            self.errorMessage = error.localizedDescription
-            print("Error: ", errorMessage)
-        }
-    }
-
-}
 
 

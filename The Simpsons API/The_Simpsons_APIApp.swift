@@ -14,8 +14,7 @@ struct The_Simpsons_APIApp: App {
             let vm = HomeCharacterViewModel(
                 characterService: TheSimpsonServiceImpl(APIService: APIService())
             )
-            
-            ContentView(viewModel: vm)
+            CharacterListView(viewModel: vm)
             
         }
     }
